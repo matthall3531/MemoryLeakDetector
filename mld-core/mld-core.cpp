@@ -60,5 +60,8 @@ size_t mld_get_number_of_leaks()
  */
 void mld_dump_leaks()
 {
-  pAllocMgr->dump();
+  if (pAllocMgr != NULL)
+  {
+    pAllocMgr->dump();
+  }
 }
