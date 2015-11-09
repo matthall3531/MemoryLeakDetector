@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <DbgHelp.h>
 #include <map>
+#include "captureStackBackTrace.h"
 
 void HeapAllocManager::register_alloc(void* ptr, size_t size, void **backtrace, unsigned short frames, unsigned long hash)
 {
@@ -15,11 +16,56 @@ void HeapAllocManager::register_alloc(void* ptr, size_t size, void **backtrace, 
   hashMap[hash]++;
 }
 
-void HeapAllocManager::deregister_alloc(void* ptr)
+/**
+ * Removes an allocation from the allocation table.
+ * If the allocation was never made, the data in the AllocationData
+ * struct will be all zero. Print the backtrace for this and exit.
+ */
+bool HeapAllocManager::deregister_alloc(void* ptr)
 {
+  bool success = false;
+
   AllocationData &data = allocationMap[ptr];
-  hashMap[data.hash]--;
-  allocationMap.erase(ptr);
+
+  if (data.size != 0)
+  {
+    hashMap[data.hash]--;
+    if (data.backtrace != NULL)
+    {
+      free(data.backtrace);
+    }
+    allocationMap.erase(ptr);
+    success = true;
+  }
+  return success;
+}
+
+void HeapAllocManager::dumpStackTrace(void **backtrace, unsigned short iFrames)
+{
+  SYMBOL_INFO* symbol;
+  IMAGEHLP_LINE64 *line = (IMAGEHLP_LINE64 *)malloc(sizeof(IMAGEHLP_LINE64));
+  line->SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+  symbol = (SYMBOL_INFO *)calloc(1, sizeof(SYMBOL_INFO) + 256 * sizeof(char));
+  symbol->MaxNameLen = 255;
+  symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+  HANDLE process = GetCurrentProcess();
+  const unsigned short  MAX_CALLERS_SHOWN = 20;
+
+  DWORD64* trace = (DWORD64*)(*backtrace);
+
+  printf("Trying to free memory which is already free (or was never allocated):\n");
+  unsigned short frames = iFrames < MAX_CALLERS_SHOWN ? iFrames : MAX_CALLERS_SHOWN;
+  for (unsigned int i = 0; i < frames; i++)
+  {
+    SymFromAddr(process, trace[i], 0, symbol);
+    DWORD dwDisplacement;
+    SymGetLineFromAddr64(process, trace[i], &dwDisplacement, line);
+    printf("\t%d : %s, %s - line %d\n", i, symbol->Name, line->FileName, line->LineNumber);
+  }
+
+  free(line);
+  free(symbol);
+
 }
 
 void HeapAllocManager::dumpAllocation(AllocationData& data)
@@ -46,6 +92,9 @@ void HeapAllocManager::dumpAllocation(AllocationData& data)
     SymGetLineFromAddr64(process, trace[i], &dwDisplacement, line);
     printf("\t%d : %s, %s - line %d\n", i, symbol->Name, line->FileName, line->LineNumber);
   }
+
+  free(line);
+  free(symbol);
 }
 
 void HeapAllocManager::dump()

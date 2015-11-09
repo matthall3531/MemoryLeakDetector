@@ -9,7 +9,7 @@ typedef USHORT(WINAPI *CaptureStackBackTraceType)(__in ULONG, __in ULONG, __out 
 
 static CaptureStackBackTraceType captureFnk = NULL;
 
-void captureStackBackTrace(void **backtrace, unsigned short& frames, unsigned long* trace_hash)
+void captureStackBackTrace(int skipFrames, void **backtrace, unsigned short& frames, unsigned long* trace_hash)
 {
   const int kMaxCallers = 62;
 
@@ -26,7 +26,7 @@ void captureStackBackTrace(void **backtrace, unsigned short& frames, unsigned lo
   HANDLE process;
   process = GetCurrentProcess();
   SymInitialize(process, NULL, TRUE);
-  frames = (*captureFnk)(2, kMaxCallers, callers_stack, trace_hash);
+  frames = (*captureFnk)(skipFrames, kMaxCallers, callers_stack, trace_hash);
 
   *backtrace = calloc(frames, sizeof(void*));
   memcpy(*backtrace, callers_stack, frames * sizeof(void*));

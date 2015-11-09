@@ -3,14 +3,17 @@
 
 #include <map>
 
+/// AllocationData is used to store the stack trace information for each allocation
 struct AllocationData
 {
+  AllocationData() : size(0), backtrace(NULL), frames(0), hash(0) {}
   size_t size;
   void **backtrace;
   unsigned short frames;
   unsigned long hash;
 };
 
+/// Custom allocator for the maps used to hold data. Basically uses malloc
 template <class T>
 struct allocator {
   typedef size_t size_type;
@@ -33,27 +36,30 @@ struct allocator {
   //const_pointer address(const_reference x) const { return &x; }
 
   pointer allocate(size_type s, void const * = 0) {
-    if (0 == s)
+    if (s == 0)
+    {
       return NULL;
-    pointer temp = (pointer)malloc(s * sizeof(T));
-    if (temp == NULL)
+    }
+    pointer ptr = (pointer)malloc(s * sizeof(T));
+    if (ptr == NULL)
+    {
       throw std::bad_alloc();
-    return temp;
+    }
+    return ptr;
   }
 
-  void deallocate(pointer p, size_type) {
+  void deallocate(pointer p, size_type) 
+  {
     free(p);
   }
 
-  /*size_type max_size() const throw() {
-  return std::numeric_limits<size_t>::max() / sizeof(T);
-  }*/
-
-  void construct(pointer p, const T& val) {
+  void construct(pointer p, const T& val) 
+  {
     new((void *)p) T(val);
   }
 
-  void destroy(pointer p) {
+  void destroy(pointer p) 
+  {
     p->~T();
   }
 };
@@ -69,7 +75,9 @@ public:
   virtual ~HeapAllocManager() {}
 
   void register_alloc(void* ptr, size_t size, void **backtrace, unsigned short frames, unsigned long hash);
-  void deregister_alloc(void* ptr);
+  bool deregister_alloc(void* ptr);
+
+  void dumpStackTrace(void **backtrace, unsigned short iFrames);
 
   void dump();
 

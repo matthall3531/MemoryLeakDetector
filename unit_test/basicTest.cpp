@@ -20,3 +20,8 @@ TEST(basicTest, stackDump)
   TestObj* pObj = new TestObj();
   mld_dump_leaks();
 }
+
+TEST(basicTest, deleteError)
+{
+  mld_deregister_alloc((void*)0x56575656);
+}
