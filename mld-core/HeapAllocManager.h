@@ -65,8 +65,8 @@ typedef std::map<unsigned long, size_t, std::less<unsigned long>, allocator<std:
 class HeapAllocManager
 {
 public:
-  HeapAllocManager();
-  virtual ~HeapAllocManager();
+  HeapAllocManager() {}
+  virtual ~HeapAllocManager() {}
 
   void register_alloc(void* ptr, size_t size, void **backtrace, unsigned short frames, unsigned long hash);
   void deregister_alloc(void* ptr);

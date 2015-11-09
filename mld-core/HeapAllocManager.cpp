@@ -3,20 +3,6 @@
 #include <DbgHelp.h>
 #include <map>
 
-
-// Static data. The data of the HeapAllocManager
-// End of static data
-
-HeapAllocManager::HeapAllocManager()
-{
-
-}
-
-HeapAllocManager::~HeapAllocManager()
-{
-
-}
-
 void HeapAllocManager::register_alloc(void* ptr, size_t size, void **backtrace, unsigned short frames, unsigned long hash)
 {
   struct AllocationData data;
