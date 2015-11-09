@@ -9,3 +9,5 @@ are currently dumped to stdout.
 
 If you are overloading new/delete yourself, you only have to link with the mld-core lib. Call the mld-core functions from
 your new/delete code to make it work. See the mld-op lib code for an example of how to do this.
+
+Note that the stack trace depends on the SymInitialize() call finding the correct .pdb file. The code could be extended by adding a number of search paths to look for .pdb files in more places.
