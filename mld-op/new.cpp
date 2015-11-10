@@ -24,8 +24,10 @@ void operator delete[](void *ptr)
 
 void operator delete(void *ptr)
 {
-  free(ptr);
-  mld_deregister_alloc(ptr);
+  if (mld_deregister_alloc(ptr))
+  {
+    free(ptr);
+  }
 }
 
 

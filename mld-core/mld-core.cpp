@@ -33,9 +33,11 @@ void mld_register_alloc(void *ptr, size_t size)
 /**
  * Remove allocation data from the HeapAllocationManager.
  * @ptr Memory pointer
+ * @return True if the memory was deallocated
  */
-void mld_deregister_alloc(void *ptr)
+bool mld_deregister_alloc(void *ptr)
 {
+  bool success = true;
   if (!pAllocMgr->deregister_alloc(ptr))
   {
     // The ptr was not in the allocation table
@@ -44,7 +46,9 @@ void mld_deregister_alloc(void *ptr)
     unsigned long hash;
     captureStackBackTrace(2, &backtrace, frames, &hash);
     pAllocMgr->dumpStackTrace(&backtrace, frames);
+    success = false;
   }
+  return success;
 }
 
 /**

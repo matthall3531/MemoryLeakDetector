@@ -23,5 +23,5 @@ TEST(basicTest, stackDump)
 
 TEST(basicTest, deleteError)
 {
-  mld_deregister_alloc((void*)0x56575656);
+  delete ((void*)0x56575656);
 }
